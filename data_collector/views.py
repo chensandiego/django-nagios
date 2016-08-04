@@ -10,6 +10,8 @@ class StatusView(TemplateView):
 	def get_context_data(self,**kwargs):
 		ctx = super(StatusView,self).get_context_data(**kwargs)
 
+		alerts=Alert.objects.filter(is_active=True)
+
 		nodes_and_data_types = DataPoint.objects.all().values('node_name','data_type').distinct()
 
 		status_data_dict = dict()
@@ -20,10 +22,22 @@ class StatusView(TemplateView):
 			data_point_map=status_data_dict.setdefault(node_name,dict())
 			data_point_map[data_type] = DataPoint.objects.filter(node_name=node_name,data_type=data_type).latest('datetime')
 
-			ctx['status_data_dict']=status_data_dict
-			return ctx 
+		ctx['status_data_dict']=status_data_dict
+		return ctx 
 
+	def does_have_alert(self,data_point,alerts):
+		for alert in alerts:
+			if alert.node_name and data_point.node_name !=alert.node_name:
+				continue
+			if alert.data_type !=data_point.data_type:
+				continue
+			if alert.min_value is not None and data_point.data_value < alert.min_value:
+				return True 
+			if alert.max_value is not None and data_point.data_value >alert.max_value:
+				return True
+		return False
 
+		
 class AlertListView(ListView):
 	template_name='alerts_list.html'
 	model =Alert 
