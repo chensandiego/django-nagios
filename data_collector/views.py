@@ -3,6 +3,26 @@ from django.views.generic import TemplateView,ListView
 from data_collector.models import DataPoint,Alert 
 from django.core.urlresolvers import reverse
 from django.views.generic import CreateView,UpdateView,DeleteView
+from django.forms.models import modelform_factory
+from django.http.response import HttpResponse
+from django.http.response import HttpResponseBadRequest
+from django.http.response import HttpResponseForbidden
+from django.views.generic import View 
+
+class RecordDataApiView(View):
+	def post(self,request,*args,**kwargs):
+		if request.META.get('HTTP_AUTH_SECRET')!='supersecretkey':
+			return HttpResponseForbidden('Auth key incorrect')
+
+
+		form_class=modelform_factory(DataPoint,fields=['node_name','data_type','data_value'])
+		form = form_class(request.POST)
+		if form.is_valid():
+			form.save()
+			return HttpResponse()
+		else:
+			return HttpResponseBadRequest()
+
 
 class StatusView(TemplateView):
 	template_name='status.html'

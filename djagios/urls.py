@@ -16,12 +16,14 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from django.views.decorators.csrf import csrf_exempt 
+from data_collector.views import RecordDataApiView 
 from data_collector.views import StatusView,DeleteAlertView ,AlertListView,NewAlertView,EditAlertView
 urlpatterns = [
     url(r'^$', StatusView.as_view(),name='status'),
+    url(r'^record/$',csrf_exempt(RecordDataApiView.as_view()),name='record-data'),
     url(r'^alerts/$', AlertListView.as_view(),name='alerts-list'),		
     url(r'^alerts/new/$',NewAlertView.as_view(),name='alerts-new'),
-
     url(r'^alerts/(?P<pk>\d+)/edit/$',EditAlertView.as_view(),name='alerts-edit'),
     url(r'^alerts/(?P<pk>\d+)/delete/$',DeleteAlertView.as_view(),name='alerts-delete'),
 ]
